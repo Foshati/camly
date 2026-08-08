@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Production build artifacts
+dist/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*.local
+*.log
+
+# Editor and IDE directories
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
