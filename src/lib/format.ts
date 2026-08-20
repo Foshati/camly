@@ -31,3 +31,4 @@ export function fileName(path: string): string {
 export function shortenHome(path: string): string {
   return path.replace(/^\/Users\/[^/]+/, "~");
 }
+
