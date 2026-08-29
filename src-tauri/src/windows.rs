@@ -205,3 +205,4 @@ pub fn set_bubble(app: AppHandle, visible: bool, size: f64) {
 }
 
 static BUBBLE_PLACED: std::sync::Mutex<bool> = std::sync::Mutex::new(false);
+
