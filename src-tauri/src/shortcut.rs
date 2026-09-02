@@ -48,4 +48,3 @@ pub fn set_shortcut(app: AppHandle, accelerator: Option<String>) -> Result<Strin
 pub fn default_shortcut() -> String {
     DEFAULT.to_string()
 }
-
