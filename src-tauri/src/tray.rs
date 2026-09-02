@@ -117,3 +117,4 @@ pub fn set_shortcut_label(app: &AppHandle, accelerator: &str) {
         let _ = state.new.set_accelerator(Some(accelerator));
     }
 }
+
