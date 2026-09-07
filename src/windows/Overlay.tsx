@@ -204,4 +204,3 @@ function resizeRect(s: Rect, handle: string, dx: number, dy: number): Rect {
   }
   return { x, y, width, height };
 }
-
