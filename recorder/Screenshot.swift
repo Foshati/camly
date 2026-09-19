@@ -86,3 +86,4 @@ func encode(_ image: CGImage, format: String, scale: Double) -> Data? {
     guard CGImageDestinationFinalize(dest) else { return nil }
     return data as Data
 }
+
