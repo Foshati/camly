@@ -68,3 +68,4 @@ func resolveTarget(
         return CaptureTarget(filter: filter, sourceRect: nil, isWindow: false)
     }
 }
+
