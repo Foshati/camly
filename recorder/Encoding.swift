@@ -74,4 +74,3 @@ enum Encoding {
         url.pathExtension.lowercased() == "mov" ? .mov : .mp4
     }
 }
-
