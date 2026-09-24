@@ -424,4 +424,3 @@ enum RecorderError: Error {
         }
     }
 }
-
