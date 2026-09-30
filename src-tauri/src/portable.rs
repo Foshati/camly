@@ -579,3 +579,4 @@ fn parse_clock(s: &str) -> Option<f64> {
     let sec: f64 = parts.next()?.parse().ok()?;
     Some(h * 3600.0 + m * 60.0 + sec)
 }
+
