@@ -396,3 +396,4 @@ function compressTo(input: string, output: string, settings: Parameters<typeof c
     void off.then(() => api.compress(id, input, compressOptions(settings), output).catch(reject));
   });
 }
+
