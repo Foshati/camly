@@ -1,0 +1,22 @@
+{
+  "bundle": {
+    "targets": [
+      "deb",
+      "rpm",
+      "appimage"
+    ],
+    "linux": {
+      "deb": {
+        "depends": [
+          "ffmpeg",
+          "pulseaudio-utils"
+        ]
+      },
+      "rpm": {
+        "depends": [
+          "ffmpeg"
+        ]
+      }
+    }
+  }
+}
