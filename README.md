@@ -204,4 +204,3 @@ Every tag push matching `v*` (e.g., `git tag v1.0.0 && git push origin v1.0.0`) 
 
 Camly is open-source software licensed under the [MIT License](LICENSE).
 Created with care by [Foshati](https://github.com/Foshati).
-

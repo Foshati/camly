@@ -657,4 +657,3 @@ fn decode_uri(s: &str) -> String {
     }
     String::from_utf8_lossy(&out).to_string()
 }
-

@@ -39,4 +39,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 window.addEventListener("contextmenu", (e) => {
   if (!(e.target instanceof HTMLInputElement)) e.preventDefault();
 });
-

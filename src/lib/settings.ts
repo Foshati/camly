@@ -229,4 +229,3 @@ export function saveRegion(rect: Rect) {
     /* ignore */
   }
 }
-

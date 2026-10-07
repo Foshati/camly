@@ -39,4 +39,3 @@ func handlePermissions(_ o: PermissionOptions) async {
         "camera": status(.video),
     ])
 }
-

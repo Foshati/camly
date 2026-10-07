@@ -155,4 +155,3 @@ export const api = {
   openToolbar: () => invoke("open_toolbar"),
   showLibrary: (tab: "recordings" | "compress" | "settings") => invoke("show_library", { tab }),
 };
-
