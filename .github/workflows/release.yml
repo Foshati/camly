@@ -1,6 +1,6 @@
 # Builds Camly installers for macOS (Apple Silicon + Intel), Windows and Linux.
-# Push a tag like v1.0.0 (or run manually) → a draft is populated by matrix runners,
-# then automatically published as a public GitHub Release with all platform installers.
+# Push a tag like v1.1.0 → a draft is populated by matrix runners, then published as a
+# public GitHub Release. Run it manually to (re)build some platforms for an existing tag.
 name: Release
 
 on:
@@ -9,44 +9,61 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release version tag (e.g. v1.0.0)'
-        required: false
+        description: 'Release tag to build (e.g. v1.1.0); its code is checked out'
+        required: true
         default: 'v1.1.0'
+      platforms:
+        description: 'Platforms to build: all, or a comma list of macos,windows,linux'
+        required: false
+        default: 'all'
 
 permissions:
   contents: write
 
 jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.pick.outputs.include }}
+    steps:
+      - id: pick
+        env:
+          PLATFORMS: ${{ inputs.platforms || 'all' }}
+        run: |
+          # GitHub retired the Intel macos-13 runners; Intel is cross-built on Apple Silicon.
+          # xcap → pipewire-rs 0.10 needs PipeWire ≥ 1.0 headers, so Linux needs 24.04+.
+          all='[
+            {"os":"macos","platform":"macos-latest","args":"--target aarch64-apple-darwin","rust_target":"aarch64-apple-darwin"},
+            {"os":"macos","platform":"macos-latest","args":"--target x86_64-apple-darwin","rust_target":"x86_64-apple-darwin"},
+            {"os":"windows","platform":"windows-latest","args":"","rust_target":"x86_64-pc-windows-msvc"},
+            {"os":"linux","platform":"ubuntu-24.04","args":"","rust_target":"x86_64-unknown-linux-gnu"}
+          ]'
+          include=$(jq -c --arg p "${PLATFORMS// /}" \
+            '[.[] | select($p == "all" or (.os as $o | $p | split(",") | index($o)))]' <<< "$all")
+          if [ "$include" = "[]" ]; then echo "::error::No platform matches '$PLATFORMS'"; exit 1; fi
+          echo "include=$include" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build (${{ matrix.rust_target }})
+    needs: plan
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: macos-latest
-            args: --target aarch64-apple-darwin
-            rust_target: aarch64-apple-darwin
-          # GitHub retired the Intel macos-13 runners; cross-build Intel on Apple Silicon.
-          - platform: macos-latest
-            args: --target x86_64-apple-darwin
-            rust_target: x86_64-apple-darwin
-          - platform: windows-latest
-            args: ""
-            rust_target: x86_64-pc-windows-msvc
-          - platform: ubuntu-22.04
-            args: ""
-            rust_target: x86_64-unknown-linux-gnu
+        include: ${{ fromJSON(needs.plan.outputs.include) }}
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 90
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: pnpm/action-setup@v4
         with:
           version: 8
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
@@ -63,9 +80,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
-            libxdo-dev libxcb1-dev libxrandr-dev libdbus-1-dev libpipewire-0.3-dev \
-            libwayland-dev libegl-dev libgbm-dev libfuse2 file
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf \
+            libxdo-dev libxcb1-dev libxrandr-dev libdbus-1-dev libpipewire-0.3-dev libclang-dev \
+            libwayland-dev libegl-dev libgbm-dev libfuse2t64 file
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
@@ -106,7 +123,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Publish GitHub Release
         env:
