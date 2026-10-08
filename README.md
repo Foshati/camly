@@ -153,9 +153,9 @@ pnpm bundle
 ```
 
 Outputs will be generated in `src-tauri/target/release/bundle/`:
-- **macOS**: `dmg/Camly_1.0.0_aarch64.dmg` or `macOS/Camly.app`
-- **Windows**: `nsis/Camly_1.0.0_x64-setup.exe`, `msi/Camly_1.0.0_x64_en-US.msi`
-- **Linux**: `deb/camly_1.0.0_amd64.deb`, `appimage/camly_1.0.0_amd64.AppImage`, `rpm/camly-1.0.0-1.x86_64.rpm`
+- **macOS**: `dmg/Camly_1.1.0_aarch64.dmg` or `macOS/Camly.app`
+- **Windows**: `nsis/Camly_1.1.0_x64-setup.exe`, `msi/Camly_1.1.0_x64_en-US.msi`
+- **Linux**: `deb/camly_1.1.0_amd64.deb`, `appimage/camly_1.1.0_amd64.AppImage`, `rpm/camly-1.1.0-1.x86_64.rpm`
 
 ---
 
