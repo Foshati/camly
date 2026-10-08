@@ -8,7 +8,6 @@ import {
   api, compressOptions, isImage, saveDirOf,
   type CompressEvent, type Permissions, type PermissionState, type Recording, type RecorderEvent, type Sources,
 } from "../lib/api";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ceilingMBPerMinute, loadSettings, PRESETS, useSettings, type Quality } from "../lib/settings";
 import { fileName, formatBytes, formatClock, formatDate, shortenHome } from "../lib/format";
 import { acceleratorFromEvent, formatShortcut, useShortcutLabel } from "../lib/shortcut";
@@ -90,8 +89,7 @@ export default function Library() {
 
   useEffect(() => {
     if (!onboarding) return;
-    const win = getCurrentWindow();
-    void win.show().then(() => win.setFocus());
+    void api.showLibrary("recordings");
   }, [onboarding]);
 
   if (onboarding) {
@@ -811,7 +809,7 @@ function Onboarding({ onDone }: { onDone: () => void }) {
   const finish = () => {
     update({ onboarded: true });
     onDone();
-    void getCurrentWindow().hide();
+    // Shows the toolbar, then hides this window and drops the Dock icon.
     void api.openToolbar();
   };
 

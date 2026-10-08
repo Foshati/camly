@@ -4,7 +4,7 @@ mod shortcut;
 mod tray;
 mod windows;
 
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::ShortcutState;
 
 pub fn run() {
@@ -44,8 +44,8 @@ pub fn run() {
             // Windows are reused; closing just hides them.
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                let _ = window.hide();
                 let _ = window.emit_to(window.label(), "window://hidden", ());
+                windows::hide(window.app_handle(), window.label());
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -76,11 +76,22 @@ pub fn run() {
             windows::close_capture_ui,
             windows::open_toolbar,
             windows::show_library,
+            windows::fit_toolbar,
+            windows::hide_window,
             windows::show_camera,
             windows::set_bubble,
             shortcut::set_shortcut,
             shortcut::default_shortcut,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Camly");
+        .build(tauri::generate_context!())
+        .expect("error while building Camly")
+        .run(|app, event| {
+            // Clicking the Dock icon (shown while Library/Camera is open) with every
+            // window hidden brings the capture toolbar back.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
+                windows::show_toolbar(app);
+            }
+            let _ = (app, event);
+        });
 }

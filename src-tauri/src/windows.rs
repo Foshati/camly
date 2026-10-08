@@ -2,7 +2,9 @@
 //! preview card (bottom right) and the library window.
 
 use serde_json::{json, Value};
-use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+};
 
 use crate::recorder;
 
@@ -24,9 +26,72 @@ fn primary(app: &AppHandle) -> (f64, f64, f64, f64) {
     }
 }
 
+/// Bounds of the monitor a window sits on (falls back to the primary display).
+fn monitor_of(app: &AppHandle, w: &WebviewWindow) -> (f64, f64, f64, f64) {
+    match w.current_monitor() {
+        Ok(Some(m)) => {
+            let sf = m.scale_factor();
+            let pos = m.position().to_logical::<f64>(sf);
+            let size = m.size().to_logical::<f64>(sf);
+            (pos.x, pos.y, size.width, size.height)
+        }
+        _ => primary(app),
+    }
+}
+
+/// Library and Camera are regular windows. While one of them is open Camly behaves like a
+/// normal app (Dock icon, ⌘-Tab) so macOS reliably brings it to the front; otherwise it
+/// lives only in the menu bar.
+const APP_WINDOWS: [&str; 2] = ["library", "camera"];
+
+fn any_app_window_visible(app: &AppHandle) -> bool {
+    APP_WINDOWS.iter().any(|l| {
+        app.get_webview_window(l)
+            .and_then(|w| w.is_visible().ok())
+            .unwrap_or(false)
+    })
+}
+
+/// Back to menu-bar-only once no regular window is showing.
+pub fn sync_activation_policy(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        let policy = if any_app_window_visible(app) {
+            tauri::ActivationPolicy::Regular
+        } else {
+            tauri::ActivationPolicy::Accessory
+        };
+        let _ = app.set_activation_policy(policy);
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
+}
+
+/// Shows a regular window on the current Space and makes it key, even when Camly is
+/// not the active app.
+fn present(app: &AppHandle, label: &str) -> bool {
+    let Some(w) = app.get_webview_window(label) else { return false };
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+        // Joining all Spaces for a moment pulls the window onto the Space the user is on,
+        // instead of macOS jumping to wherever it was last shown.
+        let _ = w.set_visible_on_all_workspaces(true);
+    }
+    let _ = w.unminimize();
+    let _ = w.show();
+    let _ = w.set_focus();
+    #[cfg(target_os = "macos")]
+    let _ = w.set_visible_on_all_workspaces(false);
+    true
+}
+
 pub fn hide(app: &AppHandle, label: &str) {
     if let Some(w) = app.get_webview_window(label) {
         let _ = w.hide();
+    }
+    if APP_WINDOWS.contains(&label) {
+        sync_activation_policy(app);
     }
 }
 
@@ -48,6 +113,8 @@ pub fn toggle_capture(app: &AppHandle) {
 pub fn show_toolbar(app: &AppHandle) {
     let Some(w) = app.get_webview_window("toolbar") else { return };
     let (x, y, width, height) = primary(app);
+    // Tell the page first so it drops any open panel before the window appears.
+    let _ = app.emit_to("toolbar", "toolbar://opened", ());
     let _ = w.set_size(LogicalSize::new(TOOLBAR_WIDTH, TOOLBAR_HEIGHT));
     let _ = w.set_position(LogicalPosition::new(
         x + (width - TOOLBAR_WIDTH) / 2.0,
@@ -55,7 +122,29 @@ pub fn show_toolbar(app: &AppHandle) {
     ));
     let _ = w.show();
     let _ = w.set_focus();
-    let _ = app.emit_to("toolbar", "toolbar://opened", ());
+}
+
+/// Resizes the toolbar to fit its content, growing upwards so the bar never moves.
+/// Runs on the main thread, so overlapping requests can't interleave and drift the
+/// window off screen. Returns the height actually applied (clamped to the screen).
+#[tauri::command]
+pub fn fit_toolbar(app: AppHandle, height: f64) -> f64 {
+    let Some(w) = app.get_webview_window("toolbar") else { return height };
+    let (Ok(sf), Ok(pos), Ok(size)) = (w.scale_factor(), w.outer_position(), w.inner_size()) else {
+        return height;
+    };
+    let pos = pos.to_logical::<f64>(sf);
+    let size = size.to_logical::<f64>(sf);
+    let (_, my, _, mh) = monitor_of(&app, &w);
+    let bottom = pos.y + size.height;
+    // Leave room for the menu bar above the panel.
+    let max = (bottom - my - 40.0).max(TOOLBAR_HEIGHT).min(mh);
+    let next = height.clamp(TOOLBAR_HEIGHT, max).round();
+    if (next - size.height).abs() >= 1.0 {
+        let _ = w.set_position(LogicalPosition::new(pos.x, bottom - next));
+        let _ = w.set_size(LogicalSize::new(TOOLBAR_WIDTH, next));
+    }
+    next
 }
 
 pub fn create_overlay(app: &AppHandle) -> tauri::Result<()> {
@@ -112,14 +201,13 @@ pub fn show_preview(app: &AppHandle, payload: Value) {
 }
 
 pub fn open_library(app: &AppHandle, tab: &str) {
-    hide(app, "toolbar");
-    hide(app, "overlay");
-    if let Some(w) = app.get_webview_window("library") {
-        let _ = w.show();
-        let _ = w.unminimize();
-        let _ = w.set_focus();
-    }
     let _ = app.emit_to("library", "library://tab", tab);
+    // Show the library before hiding the toolbar: hiding the key window first lets macOS
+    // deactivate Camly, and the library then opens behind other apps (or not at all).
+    if present(app, "library") {
+        hide(app, "toolbar");
+        hide(app, "overlay");
+    }
 }
 
 // ---------------------------------------------------------------- commands
@@ -155,8 +243,17 @@ pub fn close_capture_ui(app: AppHandle) {
 
 #[tauri::command]
 pub fn open_toolbar(app: AppHandle) {
-    hide(&app, "library");
     show_toolbar(&app);
+    hide(&app, "library");
+    if let Some(t) = app.get_webview_window("toolbar") {
+        let _ = t.set_focus();
+    }
+}
+
+/// Hides a window from the page side and keeps the Dock icon in sync.
+#[tauri::command]
+pub fn hide_window(app: AppHandle, label: String) {
+    hide(&app, &label);
 }
 
 #[tauri::command]
@@ -167,14 +264,11 @@ pub fn show_library(app: AppHandle, tab: String) {
 /// Photo Booth–style camera window for photos and webcam videos.
 #[tauri::command]
 pub fn show_camera(app: AppHandle) {
-    hide(&app, "toolbar");
-    hide(&app, "overlay");
-    hide(&app, "bubble");
-    if let Some(w) = app.get_webview_window("camera") {
-        let _ = w.show();
-        let _ = w.unminimize();
-        let _ = w.set_focus();
+    if present(&app, "camera") {
         let _ = app.emit_to("camera", "camera://opened", ());
+        hide(&app, "toolbar");
+        hide(&app, "overlay");
+        hide(&app, "bubble");
     }
 }
 

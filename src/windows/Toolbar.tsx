@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { AnimatePresence, motion } from "motion/react";
-import { getCurrentWindow, LogicalPosition, LogicalSize } from "@tauri-apps/api/window";
 import { desktopDir, documentDir, videoDir } from "@tauri-apps/api/path";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { api, beginRecording, beginScreenshot, saveDirOf, type Sources, type Target, type WindowInfo } from "../lib/api";
@@ -17,11 +16,10 @@ import {
   IconCamera, IconCheck, IconChevron, IconClose, IconFace, IconRegion, IconScreen, IconTimer, IconWarning, IconWindow,
 } from "../components/Icons";
 
-const WIDTH = 880;
-const BAR_HEIGHT = 92;
-const PANEL_HEIGHT: Record<Panel, number> = { options: 470, windows: 400 };
-const PANEL_GAP = 8;
+/** Transparent margin above and below the visible stack (room for shadows). */
+const WINDOW_PADDING = 16;
 type Panel = "options" | "windows";
+type Quick = { action: Action; mode: Mode };
 
 const MODE_TITLES: Record<Action, Record<Mode, string>> = {
   screenshot: { display: "Capture Entire Screen", window: "Capture Selected Window", region: "Capture Selected Portion" },
@@ -38,6 +36,9 @@ export default function Toolbar() {
   const [saveDir, setSaveDir] = useState("");
   const [openCount, setOpenCount] = useState(0);
   const actRef = useRef<() => void>(() => {});
+  const quickRef = useRef<(q: Quick) => void>(() => {});
+  const stackRef = useRef<HTMLDivElement>(null);
+  const fitRef = useRef<(force?: boolean) => void>(() => {});
   const shortcutError = useApplySavedShortcut();
 
   const refresh = useCallback(async () => {
@@ -50,26 +51,26 @@ export default function Toolbar() {
     }
   }, [settings.saveDir]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const resize = useCallback(async (next: Panel | null, measured?: number) => {
-    const win = getCurrentWindow();
-    const sf = await win.scaleFactor();
-    const pos = (await win.outerPosition()).toLogical(sf);
-    const size = (await win.innerSize()).toLogical(sf);
-    const panelH = next ? Math.min(measured ?? PANEL_HEIGHT[next], window.screen.availHeight - BAR_HEIGHT - 120) : 0;
-    const height = BAR_HEIGHT + (next ? panelH + PANEL_GAP : 0);
-    if (Math.abs(height - size.height) < 2) return;
-    // Grow upwards so the bar itself never moves.
-    await win.setPosition(new LogicalPosition(pos.x, pos.y + size.height - height));
-    await win.setSize(new LogicalSize(WIDTH, height));
+  // The window always matches its content (panel, alerts, hint, bar): nothing is clipped
+  // and no invisible area is left blocking clicks. Rust applies the size atomically.
+  useEffect(() => {
+    const el = stackRef.current;
+    if (!el) return;
+    let last = 0;
+    const fit = (force = false) => {
+      const height = Math.ceil(el.getBoundingClientRect().height) + WINDOW_PADDING;
+      if (!force && Math.abs(height - last) < 1) return;
+      last = height;
+      void api.fitToolbar(height);
+    };
+    fitRef.current = fit;
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(el);
+    fit();
+    return () => ro.disconnect();
   }, []);
 
-  const setPanel = useCallback(
-    (next: Panel | null) => {
-      setPanelState(next);
-      void resize(next);
-    },
-    [resize],
-  );
+  const setPanel = setPanelState;
 
   /** Esc just hides the toolbar. */
   const close = useCallback(() => {
@@ -133,24 +134,52 @@ export default function Toolbar() {
       return;
     }
     setPanelState(null);
-    await resize(null);
     try {
       if (settings.action === "screenshot") await beginScreenshot(settings, target);
       else await beginRecording(settings, target);
     } catch (e) {
       setError(String(e));
     }
-  }, [settings, selectedWindow, region, sources, resize, setPanel]);
+  }, [settings, selectedWindow, region, sources, setPanel]);
   actRef.current = () => void act();
+
+  /** One-click captures from the menu bar, using the saved settings. */
+  quickRef.current = async ({ action, mode }: Quick) => {
+    update({ action, mode });
+    const s = { ...loadSettings(), action, mode };
+    syncBubble(s);
+    setError(null);
+    // A region has to be drawn first: open the toolbar in region mode.
+    if (mode !== "display") return void api.openToolbar();
+    try {
+      const dir = await saveDirOf(s);
+      const src = await api.listSources(dir);
+      setSources(src);
+      if (!src.screenPermission) return void api.openToolbar();
+      const main = src.displays.find((d) => d.isMain);
+      const target: Target = { kind: "display", displayId: s.displayId ?? main?.id ?? null };
+      if (action === "screenshot") await beginScreenshot(s, target);
+      else await beginRecording(s, target);
+    } catch (e) {
+      await api.openToolbar();
+      setError(String(e));
+    }
+  };
 
   useEffect(() => {
     // First launch: the permissions screen (Library window) comes first.
     if (isMac && !loadSettings().onboarded) void api.closeCaptureUi();
+  }, []);
+
+  useEffect(() => {
     void refresh();
     const offs = [
       listen("toolbar://opened", () => {
         setOpenCount((n) => n + 1);
         setPanelState(null);
+        setError(null);
+        // Rust reset the window to its default size; re-fit after React re-renders.
+        requestAnimationFrame(() => fitRef.current(true));
         void refresh();
         const s = loadSettings();
         syncBubble(s);
@@ -159,6 +188,15 @@ export default function Toolbar() {
       listen<Rect>("region://changed", (e) => setRegion(e.payload)),
       listen("region://record", () => actRef.current()),
       listen("region://cancel", () => close()),
+      listen<Quick>("toolbar://quick", (e) => quickRef.current(e.payload)),
+      listen("toolbar://reveal-folder", async () => {
+        try {
+          await api.open(await saveDirOf(loadSettings()));
+        } catch (e) {
+          await api.openToolbar();
+          setError(String(e));
+        }
+      }),
     ];
     return () => offs.forEach((p) => p.then((off) => off()));
   }, [refresh, close, syncBubble]);
@@ -181,6 +219,7 @@ export default function Toolbar() {
   const free = sources?.freeBytes;
   const lowDisk = free != null && free >= 0 && free < 5 * 1024 ** 3;
   const shooting = settings.action === "screenshot";
+  const hint = hintFor(settings, selectedWindow, region);
   const modeButton = (action: Action, mode: Mode, icon: ReactNode) => (
     <ModeButton
       active={settings.action === action && settings.mode === mode}
@@ -194,14 +233,17 @@ export default function Toolbar() {
 
   return (
     <div className="toolbar-root">
+      <div className="toolbar-stack" ref={stackRef}>
       {panel === "options" && (
         <OptionsPanel
           sources={sources}
           saveDir={saveDir}
           onSaveDir={(dir) => update({ saveDir: dir })}
           onBubbleChange={() => syncBubble(loadSettings())}
-          onLibrary={() => void api.showLibrary("settings")}
-          onHeight={(h) => void resize("options", h)}
+          onLibrary={() => {
+            setPanel(null);
+            void api.showLibrary("settings");
+          }}
         />
       )}
       {panel === "windows" && (
@@ -236,6 +278,8 @@ export default function Toolbar() {
         </motion.div>
       )}
       </AnimatePresence>
+
+      {!panel && hint && <div className="bar-hint">{hint}</div>}
 
       <motion.div
         key={openCount}
@@ -308,9 +352,14 @@ export default function Toolbar() {
           )}
         </motion.button>
       </motion.div>
-      <div className="bar-hint">{hintFor(settings, selectedWindow, region)}</div>
+      </div>
     </div>
   );
+}
+
+/** Panels never grow past the top of the screen; beyond that they scroll. */
+function panelMaxHeight() {
+  return Math.max(240, window.screen.availHeight - 240);
 }
 
 function qualityLabel(q: Quality) {
@@ -321,7 +370,7 @@ function hintFor(s: Settings, w: WindowInfo | null, r: Rect | null) {
   const verb = s.action === "screenshot" ? "capture" : "record";
   if (s.mode === "window") return w ? `${w.app} — ${w.title || "Window"}` : `Choose a window to ${verb}`;
   if (s.mode === "region") return r ? `${Math.round(r.width)} × ${Math.round(r.height)} · drag to adjust · ⏎ to ${verb}` : "Drag to select an area";
-  return s.action === "screenshot" ? "⏎ Capture · Esc Close" : `⏎ Record · Esc Close · ${formatShortcut(s.shortcut)} Stop`;
+  return null;
 }
 
 function ModeButton(props: { active: boolean; record?: boolean; title: string; onClick: () => void; children: ReactNode }) {
@@ -344,7 +393,6 @@ function ModeButton(props: { active: boolean; record?: boolean; title: string; o
 // ----------------------------------------------------------------- Options
 
 function OptionsPanel(props: {
-  onHeight: (h: number) => void;
   sources: Sources | null;
   saveDir: string;
   onSaveDir: (dir: string) => void;
@@ -380,21 +428,14 @@ function OptionsPanel(props: {
   const displays = props.sources?.displays ?? [];
   const mics = props.sources?.microphones ?? [];
 
-  // Size the toolbar window to the panel's real content: no inner scrolling.
-  const measure = useCallback(
-    (el: HTMLDivElement | null) => {
-      if (!el) return;
-      const report = () => props.onHeight(Math.ceil(el.getBoundingClientRect().height));
-      report();
-      const ro = new ResizeObserver(report);
-      ro.observe(el);
-    },
-    [], // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
   return (
-    <motion.div className="panel options" initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
-      <div ref={measure}>
+    <motion.div
+      className="panel options"
+      style={{ maxHeight: panelMaxHeight() }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.16, ease: "easeOut" }}
+    >
       <div className="panel-fit">
         <div className="panel-grid three">
           <section>
@@ -498,7 +539,9 @@ function OptionsPanel(props: {
           </section>
         </div>
       </div>
-      <button className="panel-footer" onClick={props.onLibrary}>Library & Settings…</button>
+      <div className="panel-footer split">
+        <button onClick={props.onLibrary}>Library & Settings…</button>
+        <span>{formatShortcut(settings.shortcut)} opens Camly · Esc closes</span>
       </div>
     </motion.div>
   );
@@ -555,7 +598,13 @@ function WindowsPanel(props: {
   }, [props.windows, query]);
 
   return (
-    <motion.div className="panel" initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}>
+    <motion.div
+      className="panel windows"
+      style={{ maxHeight: panelMaxHeight() }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.16, ease: "easeOut" }}
+    >
       <div className="panel-head">
         <input autoFocus placeholder="Search windows" value={query} onChange={(e) => setQuery(e.target.value)} />
         <button onClick={props.onRefresh}>Refresh</button>

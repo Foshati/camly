@@ -153,5 +153,7 @@ export const api = {
   hideOverlay: () => invoke("hide_overlay"),
   closeCaptureUi: () => invoke("close_capture_ui"),
   openToolbar: () => invoke("open_toolbar"),
+  fitToolbar: (height: number) => invoke<number>("fit_toolbar", { height }),
+  hideWindow: (label: string) => invoke("hide_window", { label }),
   showLibrary: (tab: "recordings" | "compress" | "settings") => invoke("show_library", { tab }),
 };
