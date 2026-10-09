@@ -1,6 +1,6 @@
 # Contributing to Camly
 
-Thanks for helping improve Camly. Bug reports, feature proposals, documentation, Persian/English translations, and tests on macOS, Windows, and Linux are welcome.
+Thanks for helping improve Camly. Bug reports, feature proposals, documentation improvements, and tests on macOS, Windows, and Linux are welcome.
 
 ## Report a bug or suggest a feature
 
@@ -15,7 +15,7 @@ For installation help, start with [SUPPORT.md](SUPPORT.md). Check the [platform 
 3. Keep the change focused. For a large feature, discuss its intended behavior in an issue first.
 4. Run `pnpm build` to type-check and build the frontend. For Rust changes, run `cargo check --manifest-path src-tauri/Cargo.toml` after installing native dependencies. Build the Swift helper on macOS when changing recorder code.
 5. Manually exercise the affected flow in the desktop app. Report your OS, capture target, audio inputs, and result in the pull request.
-6. Update user-facing documentation when behavior or platform support changes. Keep the English and Persian guides consistent where applicable.
+6. Update user-facing documentation when behavior or platform support changes. Keep the README, support guide, and release notes consistent.
 
 Do not commit recordings with private content, generated installers, credentials, or local build output. Do not change version numbers or publish release tags for an ordinary contribution.
 

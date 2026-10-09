@@ -25,7 +25,7 @@ The banner is an illustration, not a screenshot. Real screenshots and a short de
 1. Inspect successful build jobs and actual assets before publishing download or platform claims.
 2. Update the README's version-specific download URLs for the new assets. Keep the latest-release link visible.
 3. Write release notes with available installers, requirements, fixes, and known limitations. Do not describe every existing feature as new.
-4. Keep README, Persian guide, package metadata, and installer descriptions consistent.
+4. Keep README, support guide, package metadata, and installer descriptions consistent.
 5. Check documentation links, the frontend build, and platform behavior relevant to the changes.
 
 ## Highest-value next steps
