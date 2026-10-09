@@ -1,15 +1,33 @@
-# Camly — Open-source Screen Recorder & Screenshot Tool
-
 ![Camly: screen recording, screenshots and webcam capture, compact by default](docs/assets/camly-banner.svg)
 
+<div align="center">
+  <p>
+    <a href="https://github.com/Foshati/camly">
+      <img src="app-icon.png" alt="Camly logo" width="144" height="144" />
+    </a>
+  </p>
+  <h1>Camly</h1>
+  <p>
+    <strong>Screen recording. Screenshots. Webcam capture.</strong><br />
+    Compact by default. Saved locally.
+  </p>
+  <hr />
+  <p>
+    <a href="https://github.com/Foshati/camly/releases/latest"><img src="https://img.shields.io/github/v/release/Foshati/camly?style=for-the-badge&amp;label=download&amp;color=3b82f6" alt="Download the latest Camly release" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/Foshati/camly?style=for-the-badge&amp;color=10b981" alt="MIT license" /></a>
+    <a href="https://github.com/Foshati/camly/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/Foshati/camly/check.yml?branch=main&amp;style=for-the-badge&amp;label=build" alt="Frontend build status" /></a>
+    <a href="https://github.com/Foshati/camly/stargazers"><img src="https://img.shields.io/github/stars/Foshati/camly?style=for-the-badge&amp;color=f59e0b" alt="GitHub stars" /></a>
+  </p>
+  <p>
+    <a href="https://github.com/Foshati/camly/releases/latest"><strong>Download Camly</strong></a> &nbsp;·&nbsp;
+    <a href="#features">Features</a> &nbsp;·&nbsp;
+    <a href="#platform-support">Platform support</a> &nbsp;·&nbsp;
+    <a href="#faq">FAQ</a> &nbsp;·&nbsp;
+    <a href="CONTRIBUTING.md">Contribute</a>
+  </p>
+</div>
+
 **Camly is a free, open-source desktop screen recorder, screenshot tool, and webcam recorder for macOS, Windows, and Linux (X11).** Capture a display, an application window, or a selected area; keep recordings on your computer; and use compact quality presets for product demos, tutorials, and bug reports.
-
-[![Latest release](https://img.shields.io/github/v/release/Foshati/camly?label=download)](https://github.com/Foshati/camly/releases/latest)
-[![MIT license](https://img.shields.io/github/license/Foshati/camly)](LICENSE)
-[![Release builds](https://github.com/Foshati/camly/actions/workflows/release.yml/badge.svg)](https://github.com/Foshati/camly/actions/workflows/release.yml)
-[![GitHub stars](https://img.shields.io/github/stars/Foshati/camly?style=flat)](https://github.com/Foshati/camly/stargazers)
-
-**[Download Camly](https://github.com/Foshati/camly/releases/latest)** · [Features](#features) · [Platform support](#platform-support) · [FAQ](#faq) · [Contribute](CONTRIBUTING.md) · [فارسی](README.fa.md)
 
 ## Why Camly?
 

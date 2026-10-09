@@ -1,6 +1,6 @@
 # Camly support and troubleshooting
 
-Start with [downloads and quick start](README.md#download) and the [platform support matrix](README.md#platform-support). The [Persian guide](README.fa.md) covers installation and common questions too.
+Start with [downloads and quick start](README.md#download) and the [platform support matrix](README.md#platform-support).
 
 ## Common problems
 
