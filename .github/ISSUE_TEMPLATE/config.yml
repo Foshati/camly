@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Installation and troubleshooting
+    url: https://github.com/Foshati/camly/blob/main/SUPPORT.md
+    about: Check permissions, audio, Linux dependencies, and platform limitations.
+  - name: راهنمای فارسی
+    url: https://github.com/Foshati/camly/blob/main/README.fa.md
+    about: راهنمای دانلود، نصب و استفاده از Camly به زبان فارسی.

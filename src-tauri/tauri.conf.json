@@ -100,7 +100,7 @@
   "bundle": {
     "active": true,
     "category": "Video",
-    "shortDescription": "Screenshots, screen recording and camera — compact by default",
+    "shortDescription": "Open-source screen recorder, screenshot tool and webcam recorder",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -108,6 +108,8 @@
       "icons/icon.icns",
       "icons/icon.ico",
       "icons/icon.png"
-    ]
+    ],
+    "longDescription": "Camly is a free, open-source desktop capture app for screenshots, screen recording, and webcam capture. Record a display, window, or selected region, use compact quality presets, compress videos locally, and browse captures in a media library. Native ScreenCaptureKit on macOS; FFmpeg screen recording on Windows and Linux X11. Platform capabilities vary; see the project documentation.",
+    "homepage": "https://github.com/Foshati/camly"
   }
 }

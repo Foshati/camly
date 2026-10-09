@@ -1,206 +1,143 @@
-<div align="center">
-  <img src="app-icon.png" alt="Camly Icon" width="120" height="120" />
-  <h1>Camly</h1>
-  <p><strong>Screenshots, screen recording, and webcam studio — compact by default.</strong></p>
-  <p>A fast, native-grade desktop utility crafted with <strong>Tauri 2</strong>, <strong>React 19</strong>, and <strong>Motion</strong> for macOS, Windows, and Linux.</p>
+# Camly — Open-source Screen Recorder & Screenshot Tool
 
-  <p>
-    <a href="https://github.com/Foshati/camly/releases/latest">
-      <img src="https://img.shields.io/github/v/release/Foshati/camly?style=flat-square&color=3b82f6&label=Latest%20Release" alt="Latest Release" />
-    </a>
-    <img src="https://img.shields.io/badge/Platforms-macOS%20%7C%20Windows%20%7C%20Linux-4f46e5?style=flat-square" alt="Platform Support" />
-    <img src="https://img.shields.io/badge/Tauri-v2-24c8db?style=flat-square&logo=tauri&logoColor=white" alt="Tauri 2" />
-    <img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black" alt="React 19" />
-    <img src="https://img.shields.io/badge/TypeScript-5.8-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/License-MIT-10b981?style=flat-square" alt="License" />
-  </p>
+![Camly: screen recording, screenshots and webcam capture, compact by default](docs/assets/camly-banner.svg)
 
-  <p>
-    <a href="#-downloads"><strong>Download Installers</strong></a> •
-    <a href="#-features"><strong>Features</strong></a> •
-    <a href="#-capture-engines"><strong>Engines</strong></a> •
-    <a href="#-keyboard-shortcuts"><strong>Shortcuts</strong></a> •
-    <a href="#-building-from-source"><strong>Build from Source</strong></a>
-  </p>
-</div>
+**Camly is a free, open-source desktop screen recorder, screenshot tool, and webcam recorder for macOS, Windows, and Linux (X11).** Capture a display, an application window, or a selected area; keep recordings on your computer; and use compact quality presets for product demos, tutorials, and bug reports.
 
----
+[![Latest release](https://img.shields.io/github/v/release/Foshati/camly?label=download)](https://github.com/Foshati/camly/releases/latest)
+[![MIT license](https://img.shields.io/github/license/Foshati/camly)](LICENSE)
+[![Release builds](https://github.com/Foshati/camly/actions/workflows/release.yml/badge.svg)](https://github.com/Foshati/camly/actions/workflows/release.yml)
+[![GitHub stars](https://img.shields.io/github/stars/Foshati/camly?style=flat)](https://github.com/Foshati/camly/stargazers)
 
-## 🚀 Downloads
+**[Download Camly](https://github.com/Foshati/camly/releases/latest)** · [Features](#features) · [Platform support](#platform-support) · [FAQ](#faq) · [Contribute](CONTRIBUTING.md) · [فارسی](README.fa.md)
 
-Get the prebuilt installer for your operating system directly from [GitHub Releases](https://github.com/Foshati/camly/releases/latest):
+## Why Camly?
 
-| Operating System | Package Format | Architecture | Download Link |
-|---|---|---|---|
-| **macOS 15+** | `.dmg`, `.app` | Apple Silicon (`arm64`) | [Download DMG (arm64)](https://github.com/Foshati/camly/releases/latest) |
-| **macOS 15+** | `.dmg`, `.app` | Intel (`x86_64`) | [Download DMG (x86_64)](https://github.com/Foshati/camly/releases/latest) |
-| **Windows 10 / 11** | `.exe` (NSIS), `.msi` | 64-bit (`x64`) | [Download Windows Installer](https://github.com/Foshati/camly/releases/latest) |
-| **Linux (Ubuntu / Debian)** | `.deb` | 64-bit (`x86_64`) | [Download Debian (.deb)](https://github.com/Foshati/camly/releases/latest) |
-| **Linux (Universal)** | `.AppImage` | 64-bit (`x86_64`) | [Download AppImage](https://github.com/Foshati/camly/releases/latest) |
-| **Linux (Fedora / RHEL)** | `.rpm` | 64-bit (`x86_64`) | [Download RPM (.rpm)](https://github.com/Foshati/camly/releases/latest) |
+- **Quick screen capture:** take screenshots or record a full display, window, or custom region from a floating toolbar.
+- **Smaller recordings by default:** the Compact preset targets up to 1080p. macOS uses hardware HEVC encoding; Windows and Linux use FFmpeg H.264 encoding.
+- **Local workflow:** save recordings and screenshots to a folder you choose, then preview, copy, or reveal them in your file manager. No account is required.
+- **Camera tools in the same app:** take webcam photos, record camera clips, or show a movable face-cam bubble during screen recording.
+- **Open to inspection and contribution:** built with Tauri 2, React 19, TypeScript, Rust, and a native Swift capture helper on macOS. Licensed under MIT.
 
-> [!TIP]
-> On macOS, after downloading `.dmg`, drag `Camly.app` to your `Applications` folder. On first launch, grant Screen Recording and Microphone permissions when prompted.
+Camly fits short software walkthroughs, reproducible bug reports, narrated tutorials, and everyday screenshots. File size depends on content, duration, frame rate, and preset; there is no fixed compression ratio.
 
----
+## Download
 
-## ✨ Features
+Download installers from the **[latest GitHub release](https://github.com/Foshati/camly/releases/latest)**. These links point to the verified **v1.1.0** assets; the latest-release page is the source of truth for newer versions and available builds.
 
-- ⚡ **Ultra-Compact Files by Default**: Screen recordings default to high efficiency (HEVC hardware encoding on macOS, optimized H.264 CRF 28 elsewhere) — crisp captures taking megabytes instead of gigabytes.
-- 🎯 **3 Versatile Capture Modes**:
-  - **Full Screen**: Capture your entire display with a single tap.
-  - **Window**: Target an exact application window with transparent borders and clean edges.
-  - **Custom Region**: Click and drag to record or screenshot any precise area.
-- 📸 **Instant Screenshots**: Snap any area with copy-to-clipboard, auto-save to disk, and instant pop-out preview.
-- 🎥 **Dual-Engine Architecture**:
-  - **macOS**: Native Swift helper leveraging Apple's `ScreenCaptureKit` and `VideoToolbox` (identical to macOS's native ⌘⇧5 pipeline).
-  - **Windows & Linux**: Standalone portable pipeline utilizing `FFmpeg` and `xcap` with automatic hardware acceleration when available.
-- 🫧 **Floating Camera Bubble**:
-  - Turn on the webcam bubble (`🙂`) during screen recordings.
-  - Drag it anywhere across multiple monitors.
-  - Double-click to toggle between compact and enlarged sizes.
-- 🛡️ **Crash Resilience & Low-Disk Guard**:
-  - Videos are written in fragmented containers (`fMP4` / fragmented `MOV`) so recordings survive unexpected crashes or forced quits without corruption.
-  - Low-disk guard constantly monitors available storage and safely finalizes files before free space runs out.
-- 🗜️ **Built-in Drag-and-Drop Compressor**:
-  - Drag any existing video file into Camly to compress it down to minimal file sizes with hardware encoders.
-- 🗂️ **Integrated Media Library**:
-  - Browse your history with filters for All, Recordings, Screenshots, and Camera clips.
-  - Quick inline video player, copy to clipboard, reveal in Finder/Explorer, and trash bin.
-- ⌨️ **Customizable Global Shortcut**:
-  - Press `⌘⇧2` (macOS) or `Ctrl+Shift+2` (Windows/Linux) anywhere to open the toolbar or finish recording.
-  - Remap hotkeys on the fly via Settings.
-- 🎨 **Fluid Micro-Animations**: Built with **Motion (Framer Motion v12)**, respecting system accessibility `prefers-reduced-motion` settings.
-
----
-
-## ⚙️ Capture Engines & Platform Matrix
-
-| Platform | Screen Engine | Audio Engine | Screenshot Engine | Hardware Acceleration |
-|---|---|---|---|---|
-| **macOS 15+** | Native Swift (`ScreenCaptureKit`) | CoreAudio (`AVCaptureSession`) | ScreenCaptureKit | VideoToolbox (Apple Silicon / Intel T2) |
-| **Windows 10/11** | FFmpeg (`gdigrab` / `dshow`) | DirectShow / Loopback | `xcap` cross-platform | NVENC / AMF / QSV (via FFmpeg) |
-| **Linux (X11)** | FFmpeg (`x11grab`) | PulseAudio (`pactl` / ALSA) | `xcap` cross-platform | VAAPI (via FFmpeg) |
-| **Linux (Wayland)** | Screen portal | PulseAudio | `xcap` | Supported |
-
----
-
-## 🎛️ Quality Presets
-
-Camly offers fine-tuned quality presets designed to balance resolution, frame rate, and storage:
-
-| Preset | Target Resolution | Frame Rate | macOS Codec | Windows/Linux Codec | Best For |
-|---|---|---|---|---|---|
-| **Compact (Default)** | Up to 1080p | 30 fps | Hardware HEVC | H.264 (CRF 28) | Slack, Discord, bug reports, quick demos |
-| **Balanced** | Up to 1440p | 60 fps | Hardware HEVC / H.264 | H.264 (CRF 23) | Product walkthroughs, tutorials |
-| **Retina / Original** | Native Display | 60 fps | High-bitrate HEVC | H.264 (CRF 18) | Design reviews, ultra-sharp fidelity |
-| **Custom** | User Configured | User Configured | HEVC / H.264 | User Configured | Tailored workflows, MP4 or MOV containers |
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Action | macOS | Windows / Linux |
+| System | Architecture | Installer |
 |---|---|---|
-| **Toggle Toolbar / Finish Recording** | `⌘ ⇧ 2` | `Ctrl + Shift + 2` |
-| **Capture Screenshot** | Buttons 1–3 → *Capture* | Buttons 1–3 → *Capture* |
-| **Start Screen Record** | Buttons 4–6 (●) → *Record* | Buttons 4–6 (●) → *Record* |
-| **Toggle Webcam Studio** | Click `📷` or Space to snap | Click `📷` or Space to snap |
-| **Toggle Floating Camera Bubble** | Click `🙂` (Drag to move, Double-click to resize) | Click `🙂` (Drag to move, Double-click to resize) |
-| **Pause / Resume Recording** | Pause button (macOS) | *macOS only* |
-| **Cancel Capture Overlay** | `Esc` | `Esc` |
+| macOS 15+ | Apple Silicon | [DMG for Apple Silicon](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_aarch64.dmg) |
+| macOS 15+ | Intel | [DMG for Intel](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64.dmg) |
+| Windows 10 / 11 | x64 | [EXE installer](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64-setup.exe) · [MSI installer](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64_en-US.msi) |
+| Linux | x86_64 | [DEB](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_amd64.deb) · [AppImage](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_amd64.AppImage) · [RPM](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly-1.1.0-1.x86_64.rpm) |
 
-> Shortcuts can be reconfigured in **Settings → Keyboard shortcut**.
+On macOS, open the DMG and drag **Camly.app** into **Applications**. On Windows, choose the EXE for a typical installation. On Linux, use the package for your distribution or make the AppImage executable before running it. Linux recordings require an **X11 session**, **FFmpeg**, and PulseAudio-compatible audio tools; see [platform support](#platform-support).
 
----
+## Get started
 
-## 🛠️ Building from Source
+1. Install and launch Camly. Grant screen capture permission, and camera or microphone permission if you use those features.
+2. Open the toolbar with **⌘ Shift 2** on macOS or **Ctrl Shift 2** on Windows/Linux.
+3. Choose **Screenshot** or **Record**, then select a display, window, or region.
+4. Choose your save folder, microphone, and quality preset in Settings. Start capturing; use the toolbar or global shortcut to finish a recording.
+5. Open the media library to preview the result, copy screenshots, or reveal a file in Finder, Explorer, or Files.
 
-### Prerequisites
+For a first test, record a short clip and play it back to check the selected microphone, audio, and output format.
 
-- **Node.js**: `22.x` or later
-- **Package Manager**: [pnpm](https://pnpm.io/) (`>= 8`)
-- **Rust**: Latest stable (`rustup default stable`)
-- **Platform-Specific**:
-  - **macOS**: Xcode 16+ Command Line Tools (for Swift 5 and `ScreenCaptureKit`)
-  - **Windows**: Visual Studio 2022 C++ build tools, `ffmpeg.exe` (placed in `src-tauri/binaries/`)
-  - **Linux**: WebKit2GTK and build tools:
-    ```bash
-    sudo apt-get update && sudo apt-get install -y \
-      libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
-      libxdo-dev libxcb1-dev libxrandr-dev libdbus-1-dev ffmpeg pulseaudio-utils
-    ```
+## Features
 
-### Local Setup & Development
+| Feature | What you can do |
+|---|---|
+| Screen recorder | Record a display, application window, or selected region |
+| Screenshot tool | Save screen captures, copy to the clipboard, and preview the result |
+| Webcam recorder | Take camera photos and record webcam clips with camera and microphone selection |
+| Face-cam bubble | Move the camera overlay and change its size or shape |
+| Quality presets | Choose Compact (up to 1080p), Balanced (up to 1440p), Retina (native pixels), or Custom |
+| Video compression | Drop an existing video into the library to compress it locally |
+| Media library | Filter recordings, screenshots, and camera clips; preview, reveal, copy, or trash files |
+| Recording safeguards | Fragmented MP4/MOV output and a configurable low-disk auto-stop threshold |
+| Keyboard shortcut | Remap the global toolbar/stop shortcut in Settings |
+
+The camera bubble is a desktop overlay: whether it appears in a recording depends on the selected capture target. Capture the display or a region containing it when you want it included; it is not a universal compositor for window-only recordings.
+
+### Quality and formats
+
+**Compact** is the default, using 30 fps initially and up to 1080p. **Balanced** allows up to 1440p; **Retina** keeps native pixels. Frame rate is a separate 30/60 fps setting, so changing the preset does not automatically change it. **Custom** exposes resolution and bitrate controls.
+
+Screen recordings support MP4/MOV containers and HEVC/H.264 choices. For sharing with a player that cannot decode HEVC, choose **H.264 + MP4**. Webcam capture uses formats supported by the platform webview, with an optional local conversion step. Screenshot formats also depend on the capture engine.
+
+## Platform support
+
+| Capability | macOS 15+ | Windows 10 / 11 | Linux |
+|---|---|---|---|
+| Screen recording engine | ScreenCaptureKit / Swift | FFmpeg gdigrab | FFmpeg x11grab (X11 only) |
+| Screenshots | ScreenCaptureKit | xcap | xcap; session permissions vary |
+| Video encoding | VideoToolbox hardware encoding | Software libx264 / libx265 | Software libx264 / libx265 |
+| Microphone recording | Native capture | DirectShow devices | PulseAudio-compatible input |
+| System audio recording | Supported | No dedicated loopback capture implemented | Default sink monitor through pactl |
+| Screen recording pause/resume | Supported | Not implemented | Not implemented |
+| FFmpeg installation | Native screen capture does not require FFmpeg | Included in release installers | Install separately; DEB/RPM declare dependencies |
+
+**Linux Wayland screen recording is not implemented.** Use an X11 login session for screen recordings. Screenshots use a separate xcap path and depend on compositor permissions. Linux release packages are built on Ubuntu 24.04; compatibility with older distributions is not guaranteed.
+
+## FAQ
+
+### Is Camly free and open source?
+
+Yes. Camly is distributed under the [MIT license](LICENSE), and its source code is available in this repository. You can use, modify, and redistribute it under the license terms.
+
+### Does Camly upload my screen recordings?
+
+Camly's capture, compression, and media library run locally. The current application code has no account login, cloud upload service, or analytics integration. Files are saved to the configured output folder; sharing them is a separate action you control.
+
+### Can I record my screen with a webcam overlay?
+
+Yes. Enable the face-cam bubble from the toolbar, position it over the display or region you are capturing, and record a short test. Capturing only another application's window may exclude the bubble.
+
+### Can I record system audio and a microphone?
+
+macOS supports both. Linux uses a microphone input and a default sink monitor when the relevant audio tools are available. Windows supports microphone capture through DirectShow; automatic system-audio loopback is not implemented.
+
+### Why is my video large, or incompatible with another player?
+
+Try Compact and 30 fps for smaller files. For broad playback compatibility, choose H.264 with MP4. Busy scenes and longer recordings produce larger files even with the same preset.
+
+### What if recording does not start?
+
+Check screen capture permissions, your save folder, and free disk space. On Linux, check that you are using X11 and that FFmpeg is on your PATH. See [support and troubleshooting](SUPPORT.md) or [report a bug](https://github.com/Foshati/camly/issues/new?template=bug_report.yml).
+
+### Is Camly an alternative to Loom or OBS Studio?
+
+Camly is an option for local screenshots, short screen recordings, and webcam capture. It does not currently provide Loom-style hosted sharing or OBS-style streaming and scene composition. Choose it when you want a compact local capture workflow.
+
+## Build from source
+
+You need **Node.js 22**, **pnpm 8+**, stable Rust, and the [Tauri platform prerequisites](https://v2.tauri.app/start/prerequisites/). macOS additionally needs Xcode Command Line Tools with the macOS 15 SDK. Windows/Linux use the portable engine and have a different setup from the Swift helper.
 
 ```bash
-# Clone the repository
 git clone https://github.com/Foshati/camly.git
 cd camly
-
-# Setup dependencies, icons, and native helpers
-pnpm setup
-
-# Run the app in development mode with hot-reload
-pnpm app
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
-### Packaging Installers
+Then follow the **[development guide](docs/DEVELOPMENT.md)** for your platform's native dependencies, development command, and packaging instructions.
 
-```bash
-# Build the native helper and package installers for current OS
-pnpm bundle
-```
+## Architecture
 
-Outputs will be generated in `src-tauri/target/release/bundle/`:
-- **macOS**: `dmg/Camly_1.1.0_aarch64.dmg` or `macOS/Camly.app`
-- **Windows**: `nsis/Camly_1.1.0_x64-setup.exe`, `msi/Camly_1.1.0_x64_en-US.msi`
-- **Linux**: `deb/Camly_1.1.0_amd64.deb`, `appimage/Camly_1.1.0_amd64.AppImage`, `rpm/Camly-1.1.0-1.x86_64.rpm`
+| Directory | Responsibility |
+|---|---|
+| [src/windows/](src/windows) | React toolbar, capture overlay, library, preview, webcam, and camera bubble |
+| [src/lib/](src/lib) | Tauri IPC, settings, camera helpers, and platform utilities |
+| [src-tauri/src/](src-tauri/src) | Rust app core, windows, shortcuts, tray, and portable capture engine |
+| [recorder/](recorder) | Native Swift screen capture, screenshots, encoding, audio, and compression on macOS |
+| [scripts/](scripts) | Native helper and icon build scripts |
+| [.github/workflows/](.github/workflows) | Build checks and installer release automation |
 
----
+## Help improve Camly
 
-## 🏗️ Project Architecture
+Found a problem? [Report a bug](https://github.com/Foshati/camly/issues/new?template=bug_report.yml). Have an idea? [Suggest a feature](https://github.com/Foshati/camly/issues/new?template=feature_request.yml). Code, documentation, translations, and platform testing are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```
-camly/
-├── .github/workflows/       # Automated multi-platform CI/CD release pipeline
-├── recorder/                # Native Swift helper (macOS: ScreenCaptureKit + VideoToolbox)
-│   ├── Capture.swift        # Screen capture stream management
-│   ├── Compress.swift       # Video compression utility
-│   ├── Encoding.swift       # Hardware-accelerated HEVC / H.264
-│   ├── Recorder.swift       # Session orchestrator and JSON stdout event stream
-│   ├── Screenshot.swift     # High-resolution display and window snaps
-│   └── VoiceCleaner.swift   # Audio noise suppression & gain normalization
-├── src/                     # React 19 Frontend
-│   ├── components/          # Shared UI icons, logo, and buttons
-│   ├── lib/                 # Tauri IPC bridges, camera utilities, formatters, settings
-│   ├── windows/             # Multi-window views: Toolbar, Overlay, Preview, Library, Camera, Bubble
-│   └── styles.css           # Modern Tailwind-inspired dark theme and glassmorphism styling
-├── src-tauri/               # Rust Core (Tauri 2)
-│   ├── src/
-│   │   ├── lib.rs           # Plugin registration, window manager, single-instance lock
-│   │   ├── recorder.rs      # Unified capture command dispatcher
-│   │   ├── portable.rs      # Windows & Linux engine (FFmpeg + xcap + arboard)
-│   │   ├── shortcut.rs      # System-wide configurable hotkey service
-│   │   ├── tray.rs          # System tray icon and menu actions
-│   │   └── windows.rs       # Window positioning, overlays, and toolbar behavior
-│   └── tauri.conf.json      # Multi-window config, capabilities, and bundle metadata
-└── scripts/                 # Build automation and icon generation scripts
-```
+If Camly is useful to you, **[star the repository](https://github.com/Foshati/camly)** to bookmark it and help others discover it. Sharing a real capture workflow or reporting a reproducible issue also helps the project grow.
 
----
-
-## 🤖 CI / CD & Release Automation
-
-Every tag push matching `v*` (e.g., `git tag v1.0.0 && git push origin v1.0.0`) triggers the automated GitHub Actions matrix workflow:
-1. Compiles macOS binaries for both **Apple Silicon** (`aarch64`) and **Intel** (`x86_64`).
-2. Bundles the Windows installer with portable FFmpeg.
-3. Builds Debian (`.deb`), Red Hat (`.rpm`), and universal `.AppImage` packages on Ubuntu.
-4. Gathers all binaries under a unified GitHub Release and automatically publishes it for users to download.
-
----
-
-## 📄 License
-
-Camly is open-source software licensed under the [MIT License](LICENSE).
-Created with care by [Foshati](https://github.com/Foshati).
+Created by [Foshati](https://github.com/Foshati). [MIT license](LICENSE).

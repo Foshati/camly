@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title description">
+  <title id="title">Camly — compact by default</title>
+  <desc id="description">Free, open-source screen recording, screenshots, and webcam capture for macOS, Windows, and Linux X11.</desc>
+  <rect width="1280" height="640" rx="28" fill="#0d1324"/>
+  <circle cx="1160" cy="70" r="235" fill="#17264a"/>
+  <circle cx="1180" cy="610" r="290" fill="#152039"/>
+  <rect x="72" y="64" width="192" height="32" rx="16" fill="#203754"/>
+  <text x="168" y="86" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#a7d7ff">FREE &amp; OPEN SOURCE</text>
+  <text x="68" y="224" font-family="Arial, sans-serif" font-size="112" font-weight="700" letter-spacing="-5" fill="#f5f8ff">Camly</text>
+  <text x="74" y="288" font-family="Arial, sans-serif" font-size="36" fill="#b7d7ff">Compact by default.</text>
+  <text x="74" y="369" font-family="Arial, sans-serif" font-size="25" fill="#d5ddeb">Screen recording. Screenshots.</text>
+  <text x="74" y="409" font-family="Arial, sans-serif" font-size="25" fill="#d5ddeb">Webcam capture. Saved locally.</text>
+  <text x="74" y="500" font-family="Arial, sans-serif" font-size="18" fill="#9daec8">macOS 15+  /  Windows  /  Linux X11</text>
+  <text x="74" y="568" font-family="Arial, sans-serif" font-size="20" fill="#75baff">github.com/Foshati/camly</text>
+  <g transform="translate(811 173)">
+    <rect width="338" height="231" rx="25" fill="#0d1324" stroke="#83bfff" stroke-width="6"/>
+    <path d="M28 66V38a10 10 0 0 1 10-10h28M272 28h28a10 10 0 0 1 10 10v28M310 166v28a10 10 0 0 1-10 10h-28M66 204H38a10 10 0 0 1-10-10v-28" fill="none" stroke="#415e85" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="168" cy="115" r="50" fill="#ef6578"/>
+    <rect x="154" y="101" width="28" height="28" rx="6" fill="#fff"/>
+    <path d="M169 234v34M112 270h114" fill="none" stroke="#83bfff" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="299" cy="220" r="64" fill="#263e66" stroke="#0d1324" stroke-width="10"/>
+    <circle cx="299" cy="202" r="17" fill="#a7d7ff"/>
+    <path d="M266 249c2-31 64-31 66 0" fill="#a7d7ff"/>
+  </g>
+</svg>

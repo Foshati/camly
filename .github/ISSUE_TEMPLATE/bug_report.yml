@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible problem with capture, audio, installation, or the UI.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Please search existing issues and check the platform support matrix in the README first. Remove private information from logs and recordings."
+  - type: input
+    id: version
+    attributes:
+      label: Camly version
+      placeholder: "Example: v1.1.0, or commit SHA for a source build"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux (X11)
+        - Linux (Wayland)
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS version, architecture, and package
+      placeholder: "Example: macOS 15, Apple Silicon, DMG; Ubuntu 24.04, x86_64, DEB"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the capture target, quality preset, and audio devices where relevant.
+      placeholder: "1. Open Camly\n2. Select...\n3. Start..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and error message
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Screenshots, logs, or additional context
+      description: Optional. Remove personal information before attaching files.

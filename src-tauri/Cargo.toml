@@ -1,7 +1,12 @@
 [package]
 name = "camly"
 version = "1.1.0"
-description = "Screenshots, screen recording and camera in one compact app"
+description = "Open-source screen recorder, screenshot tool and webcam recorder"
+license = "MIT"
+repository = "https://github.com/Foshati/camly"
+homepage = "https://github.com/Foshati/camly"
+readme = "../README.md"
+keywords = ["screen-recorder", "screenshot", "webcam", "tauri", "screen-capture"]
 edition = "2021"
 
 [lib]
