@@ -139,18 +139,23 @@ pub fn set_paused(app: &AppHandle, paused: bool) {
     }
 }
 
-pub fn set_elapsed(app: &AppHandle, seconds: f64, paused: bool) {
+pub fn set_elapsed(app: &AppHandle, seconds: f64, paused: bool, interrupted: bool) {
     let total = seconds.max(0.0) as u64;
     let clock = if total >= 3600 {
         format!("{}:{:02}:{:02}", total / 3600, (total % 3600) / 60, total % 60)
     } else {
         format!("{:02}:{:02}", total / 60, total % 60)
     };
-    let mark = if paused { "❚❚" } else { "●" };
+    // Interrupted = macOS paused the capture (sleep, lock…); Camly reconnects on its own.
+    let mark = if interrupted { "⟳" } else if paused { "❚❚" } else { "●" };
     if let Some(tray) = app.tray_by_id("main") {
         // Title shows in the macOS menu bar; Windows/Linux trays only have a tooltip.
         let _ = tray.set_title(Some(format!("{mark} {clock}")));
-        let _ = tray.set_tooltip(Some(format!("Camly — recording {clock}")));
+        let _ = tray.set_tooltip(Some(if interrupted {
+            format!("Camly — reconnecting to the screen, recording kept ({clock})")
+        } else {
+            format!("Camly — recording {clock}")
+        }));
     }
 }
 
