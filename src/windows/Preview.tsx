@@ -9,7 +9,9 @@ import { fileManager } from "../lib/platform";
 import { fileName, formatBytes, formatClock } from "../lib/format";
 import { IconClose, IconFolder, IconPlay, IconTrash, IconWarning } from "../components/Icons";
 
-type Stopped = { event: "stopped"; path: string; seconds: number; bytes: number; width: number; height: number; reason: string };
+type Stopped = {
+  event: "stopped"; path: string; parts?: string[]; seconds: number; bytes: number; width: number; height: number; reason: string;
+};
 type Payload = Stopped | Shot | CameraMedia | { event: "error"; message: string; code?: string };
 
 const VISIBLE_MS = 6000;
@@ -124,6 +126,7 @@ function MediaBody({ data, onDone }: { data: Stopped | Shot | CameraMedia; onDon
   const seconds = data.event === "shot" ? undefined : data.seconds;
   const copied = data.event === "shot" && data.copied;
   const lowDisk = data.event === "stopped" && data.reason === "lowDisk";
+  const parts = data.event === "stopped" ? (data.parts?.length ?? 1) : 1;
   const kind = data.event === "shot" ? "Screenshot" : data.event === "camera" ? (data.kind === "photo" ? "Photo" : "Camera video") : "Recording";
 
   return (
@@ -152,7 +155,9 @@ function MediaBody({ data, onDone }: { data: Stopped | Shot | CameraMedia; onDon
         <div className="card-name" title={data.path}>{fileName(data.path)}</div>
         <div className="card-meta">
           {formatBytes(data.bytes)} · {data.width}×{data.height}
-          {lowDisk && <span className="card-warn"> · stopped: disk almost full</span>}
+          {parts > 1 && <span> · saved in {parts} parts</span>}
+          {lowDisk && <span className="card-warn"> · stopped: disk full</span>}
+          {data.event === "stopped" && data.reason === "crashed" && <span className="card-warn"> · recovered after an error</span>}
         </div>
       </div>
       <div className="card-actions">

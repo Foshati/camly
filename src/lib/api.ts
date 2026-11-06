@@ -24,11 +24,13 @@ export type Sources = {
 
 export type RecorderEvent =
   | { event: "started"; path: string; width: number; height: number; fps: number; codec: string }
-  | { event: "progress"; seconds: number; bytes: number; paused: boolean; freeBytes: number }
+  | { event: "progress"; seconds: number; bytes: number; paused: boolean; interrupted?: boolean; freeBytes: number }
   | { event: "paused" }
   | { event: "resumed" }
   | { event: "warning"; code: string; message: string }
-  | { event: "stopped"; path: string; seconds: number; bytes: number; width: number; height: number; reason: string }
+  | { event: "stopped"; path: string; parts?: string[]; seconds: number; bytes: number; width: number; height: number; reason: string }
+  | { event: "recovered"; attempts: number }
+  | { event: "segment"; path: string; part: number }
   | { event: "error"; message: string; code?: string }
   | { event: "idle" };
 

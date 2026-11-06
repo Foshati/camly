@@ -10,6 +10,9 @@ import CoreGraphics
 //
 // Every result is a JSON object per line on stdout.
 
+// A closed stdout (app quit or crashed) must not kill a recording before it is finalized.
+signal(SIGPIPE, SIG_IGN)
+
 let arguments = CommandLine.arguments
 guard arguments.count >= 2 else {
     Out.fail("usage: camly-capture <list|record|compress> [json]")

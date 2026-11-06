@@ -429,7 +429,7 @@ pub fn start_recording(
     let stdout = child.stdout.take().ok_or("ffmpeg stdout unavailable")?;
     let stderr = child.stderr.take();
     let path = output.to_path_buf();
-    let min_free = opts["minFreeMB"].as_i64().unwrap_or(1024) * 1_048_576;
+    let min_free = opts["minFreeMB"].as_i64().unwrap_or(256).max(150) * 1_048_576;
     let started = Instant::now();
     let errors = Arc::new(Mutex::new(String::new()));
     let emit = Arc::new(emit);
@@ -467,7 +467,7 @@ pub fn start_recording(
                 }));
                 if !low_disk && free >= 0 && free < min_free {
                     low_disk = true;
-                    emit_progress(json!({ "event": "warning", "code": "lowDisk", "message": "Disk almost full — recording was stopped and saved." }));
+                    emit_progress(json!({ "event": "warning", "code": "lowDisk", "message": "The disk is full — the recording was stopped and saved." }));
                     emit_progress(json!({ "event": "__stop" }));
                 }
                 if line.trim() == "progress=end" {

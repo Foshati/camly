@@ -597,8 +597,8 @@ function SettingsView({ sources, saveDir, onRefresh }: { sources: Sources | null
               {s.saveDir && <button onClick={() => { update({ saveDir: "" }); onRefresh(); }}>Reset</button>}
             </div>
           </Row>
-          <Row title="Disk guard" detail={`Stop & save safely below ${s.minFreeGB} GB free`}>
-            <input type="range" min={0.5} max={10} step={0.5} value={s.minFreeGB} onChange={(e) => update({ minFreeGB: Number(e.target.value) })} />
+          <Row title="Keep free on disk" detail={`Recordings use all other space, then save safely with ${s.minFreeGB < 1 ? `${Math.round(s.minFreeGB * 1024)} MB` : `${s.minFreeGB} GB`} left`}>
+            <input type="range" min={0.25} max={10} step={0.25} value={s.minFreeGB} onChange={(e) => update({ minFreeGB: Number(e.target.value) })} />
           </Row>
         </div>
       </Section>

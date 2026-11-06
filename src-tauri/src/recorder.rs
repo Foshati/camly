@@ -139,25 +139,69 @@ fn start(app: &AppHandle, mut options: Value, save_dir: &str, container: &str) -
 
     tray::set_recording(app, true);
 
+    // Last stderr lines, to explain a helper that dies without a word.
+    let stderr_tail = std::sync::Arc::new(Mutex::new(Vec::<String>::new()));
+    if let Some(stderr) = stderr {
+        let tail = stderr_tail.clone();
+        thread::spawn(move || {
+            for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+                eprintln!("[recorder] {line}");
+                if let Ok(mut t) = tail.lock() {
+                    t.push(line);
+                    let excess = t.len().saturating_sub(20);
+                    t.drain(..excess);
+                }
+            }
+        });
+    }
+
     let handle = app.clone();
     thread::spawn(move || {
+        let mut started = Value::Null;
+        let mut seconds = 0.0;
+        let mut ended = false;
         for line in BufReader::new(stdout).lines().map_while(Result::ok) {
             let Ok(event) = serde_json::from_str::<Value>(&line) else { continue };
+            match event["event"].as_str() {
+                Some("started") => started = event.clone(),
+                Some("progress") => seconds = event["seconds"].as_f64().unwrap_or(seconds),
+                Some("stopped") | Some("error") => ended = true,
+                _ => {}
+            }
+            on_event(&handle, &event);
+            let _ = handle.emit("recorder", event);
+        }
+        if !ended {
+            // The helper died (crash, killed). Fragmented MP4/MOV files stay playable, so show
+            // what was saved instead of losing the recording silently.
+            let event = salvage(&path, &started, seconds, &stderr_tail);
             on_event(&handle, &event);
             let _ = handle.emit("recorder", event);
         }
         finished(&handle);
     });
 
-    if let Some(stderr) = stderr {
-        thread::spawn(move || {
-            for line in BufReader::new(stderr).lines().map_while(Result::ok) {
-                eprintln!("[recorder] {line}");
-            }
+    Ok(path_str)
+}
+
+fn salvage(path: &Path, started: &Value, seconds: f64, stderr: &Mutex<Vec<String>>) -> Value {
+    let bytes = std::fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+    if bytes > 0 {
+        return json!({
+            "event": "stopped",
+            "path": path.to_string_lossy(),
+            "seconds": seconds,
+            "bytes": bytes,
+            "width": started["width"],
+            "height": started["height"],
+            "reason": "crashed",
         });
     }
-
-    Ok(path_str)
+    let detail = stderr.lock().map(|t| t.join("\n")).unwrap_or_default();
+    json!({
+        "event": "error",
+        "message": if detail.trim().is_empty() { "The recorder stopped unexpectedly.".to_string() } else { detail },
+    })
 }
 
 fn on_event(app: &AppHandle, event: &Value) {
@@ -165,12 +209,14 @@ fn on_event(app: &AppHandle, event: &Value) {
         Some("progress") => {
             let secs = event["seconds"].as_f64().unwrap_or(0.0);
             let paused = event["paused"].as_bool().unwrap_or(false);
-            tray::set_elapsed(app, secs, paused);
+            let interrupted = event["interrupted"].as_bool().unwrap_or(false);
+            tray::set_elapsed(app, secs, paused, interrupted);
         }
         Some("paused") => tray::set_paused(app, true),
         Some("resumed") => tray::set_paused(app, false),
         Some("stopped") => windows::show_preview(app, event.clone()),
         Some("error") => windows::show_preview(app, event.clone()),
+        Some("warning") => eprintln!("[recorder] {}", event["message"].as_str().unwrap_or("")),
 
         _ => {}
     }

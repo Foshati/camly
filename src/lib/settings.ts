@@ -73,7 +73,8 @@ export const DEFAULTS: Settings = {
   fps: 30,
   customHeight: 1080,
   customMbps: 4,
-  minFreeGB: 1,
+  /** Left free when the disk fills up: just enough to close the file safely. */
+  minFreeGB: 0.25,
   displayId: null,
   showPreview: true,
   shotFormat: "png",
@@ -171,7 +172,14 @@ const EVENT = "camly:settings";
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : { ...DEFAULTS };
+    if (!raw) return { ...DEFAULTS };
+    const stored = JSON.parse(raw);
+    // v1.1 kept 1 GB (or more) back; recordings now use the disk until it is really full.
+    if (!stored.diskReserveV2) {
+      stored.minFreeGB = DEFAULTS.minFreeGB;
+      stored.diskReserveV2 = true;
+    }
+    return { ...DEFAULTS, ...stored };
   } catch {
     return { ...DEFAULTS };
   }
