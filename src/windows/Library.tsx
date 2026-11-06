@@ -14,12 +14,16 @@ import { acceleratorFromEvent, formatShortcut, useShortcutLabel } from "../lib/s
 import { fileManager, isMac, isWindows, trashName } from "../lib/platform";
 import { Logo } from "../components/Logo";
 import {
+  checkForUpdates, installUpdate, lastChecked, RELEASES_URL, restartToUpdate, useAppVersion, useAutoUpdateCheck, useUpdater,
+  type UpdateState,
+} from "../lib/updater";
+import {
   IconCamera, IconCompress, IconDisk, IconFilm, IconFolder, IconGear, IconImage, IconKeyboard, IconMic,
-  IconCheck, IconPlay, IconRecord, IconShield, IconSliders, IconTrash,
+  IconCheck, IconPlay, IconRecord, IconShield, IconSliders, IconTrash, IconUpdate, IconWarning,
 } from "../components/Icons";
 
 type Filter = "all" | "videos" | "screenshots" | "camera";
-type Tab = Filter | "compress" | "settings";
+type Tab = Filter | "compress" | "settings" | "updates";
 
 const FILTER_TITLES: Record<Filter, string> = { all: "All Captures", videos: "Recordings", screenshots: "Screenshots", camera: "Camera" };
 
@@ -37,6 +41,17 @@ export default function Library() {
   const [sources, setSources] = useState<Sources | null>(null);
   const [items, setItems] = useState<Recording[]>([]);
   const shortcutLabel = useShortcutLabel();
+  const update = useUpdater();
+  useAutoUpdateCheck(settings.autoUpdates);
+  const updateReady = update.status === "available" || update.status === "ready";
+
+  useEffect(() => {
+    const off = listen("updater://check", () => {
+      setTab("updates");
+      void checkForUpdates();
+    });
+    return () => void off.then((f) => f());
+  }, []);
 
   const refreshSources = useCallback(async () => {
     const dir = await saveDirOf(settings);
@@ -126,8 +141,27 @@ export default function Library() {
         <div className="side-label">Tools</div>
         <NavItem active={tab === "compress"} onClick={() => setTab("compress")} icon={<IconCompress width={16} height={16} />}>Compress</NavItem>
         <NavItem active={tab === "settings"} onClick={() => setTab("settings")} icon={<IconGear width={16} height={16} />}>Settings</NavItem>
+        <NavItem active={tab === "updates"} onClick={() => setTab("updates")} icon={<IconUpdate width={16} height={16} />} badge={updateReady ? "New" : undefined}>Updates</NavItem>
 
         <div className="lib-side-foot">
+          <AnimatePresence>
+            {updateReady && tab !== "updates" && (
+              <motion.button
+                key="update"
+                className="update-banner"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                onClick={() => setTab("updates")}
+              >
+                <IconUpdate width={15} height={15} />
+                <span>
+                  <strong>{update.status === "ready" ? "Restart to update" : "Update available"}</strong>
+                  <em>Camly {update.status === "available" || update.status === "ready" ? update.version : ""}</em>
+                </span>
+              </motion.button>
+            )}
+          </AnimatePresence>
           {free >= 0 && (
             <div className="disk">
               <div className="disk-row">
@@ -152,6 +186,8 @@ export default function Library() {
           >
             {tab === "compress" ? (
               <Compress />
+            ) : tab === "updates" ? (
+              <UpdatesView />
             ) : tab === "settings" ? (
               <SettingsView sources={sources} saveDir={saveDir} onRefresh={() => void refreshSources()} />
             ) : (
@@ -164,13 +200,14 @@ export default function Library() {
   );
 }
 
-function NavItem(props: { active: boolean; onClick: () => void; icon: ReactNode; count?: number; children: ReactNode }) {
+function NavItem(props: { active: boolean; onClick: () => void; icon: ReactNode; count?: number; badge?: string; children: ReactNode }) {
   return (
     <button className={`nav ${props.active ? "on" : ""}`} onClick={props.onClick}>
       {props.active && <motion.span layoutId="nav-pill" className="nav-pill" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
       <span className="nav-icon">{props.icon}</span>
       <span className="nav-label">{props.children}</span>
       {props.count != null && props.count > 0 && <span className="nav-count">{props.count}</span>}
+      {props.badge && <span className="nav-badge">{props.badge}</span>}
     </button>
   );
 }
@@ -412,6 +449,137 @@ function Compress() {
             )}
           </motion.div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------- Updates
+
+function UpdatesView() {
+  const [s, update] = useSettings();
+  const state = useUpdater();
+  const version = useAppVersion();
+  const checked = lastChecked();
+  const busy = state.status === "checking" || state.status === "downloading" || state.status === "installing";
+
+  return (
+    <div className="page updates">
+      <header className="page-head">
+        <div>
+          <h1>Updates</h1>
+          <p className="muted">Camly {version || "…"} · new versions install right here, no download page needed.</p>
+        </div>
+        <button className="primary ghost" disabled={busy || state.status === "ready"} onClick={() => void checkForUpdates()}>
+          {state.status === "checking" ? "Checking…" : "Check Now"}
+        </button>
+      </header>
+
+      <UpdateCard state={state} />
+
+      <div className="settings-card">
+        <Row title="Check automatically" detail="At launch and every few hours, in the background">
+          <Switch checked={s.autoUpdates} onChange={(autoUpdates) => update({ autoUpdates })} />
+        </Row>
+        <Row title="Last checked" detail={checked ? formatDate(checked) : "Never"}>
+          <button onClick={() => void api.open(RELEASES_URL)}>All releases</button>
+        </Row>
+      </div>
+      {isMac && (
+        <p className="section-note">
+          After an update macOS may ask once more for Screen Recording permission. Turn Camly on in System Settings and
+          you're set.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function UpdateCard({ state }: { state: UpdateState }) {
+  const pct =
+    state.status === "downloading" && state.total ? Math.min(100, Math.round((state.downloaded / state.total) * 100)) : null;
+
+  return (
+    <motion.div layout className={`update-card ${state.status}`}>
+      {state.status === "idle" && (
+        <UpdateLine icon={<IconUpdate />} title="Not checked yet" detail="Check now to see whether a newer Camly is out." />
+      )}
+      {state.status === "checking" && (
+        <UpdateLine icon={<span className="spinner" />} title="Checking for updates…" detail="Asking GitHub for the latest release." />
+      )}
+      {state.status === "current" && (
+        <UpdateLine icon={<IconCheck />} tone="ok" title="Camly is up to date" detail="You have the newest version." />
+      )}
+      {state.status === "available" && (
+        <>
+          <UpdateLine
+            icon={<IconUpdate />}
+            tone="accent"
+            title={`Camly ${state.version} is available`}
+            detail={releasedOn(state.date)}
+          />
+          {state.notes && <pre className="update-notes">{state.notes}</pre>}
+          <div className="update-actions">
+            <button className="primary" onClick={() => void installUpdate()}>Download & Install</button>
+            <button className="link" onClick={() => void api.open(RELEASES_URL)}>What's new</button>
+          </div>
+        </>
+      )}
+      {state.status === "downloading" && (
+        <>
+          <UpdateLine
+            icon={<span className="spinner" />}
+            tone="accent"
+            title={`Downloading Camly ${state.version}…`}
+            detail={state.total ? `${formatBytes(state.downloaded)} of ${formatBytes(state.total)}` : formatBytes(state.downloaded)}
+          />
+          <div className={`update-progress ${pct == null ? "indeterminate" : ""}`}>
+            <motion.span animate={{ width: pct == null ? "35%" : `${pct}%` }} transition={{ ease: "easeOut", duration: 0.2 }} />
+          </div>
+        </>
+      )}
+      {state.status === "installing" && (
+        <UpdateLine icon={<span className="spinner" />} tone="accent" title={`Installing Camly ${state.version}…`} detail="This only takes a moment." />
+      )}
+      {state.status === "ready" && (
+        <>
+          <UpdateLine
+            icon={<IconCheck />}
+            tone="ok"
+            title={`Camly ${state.version} is installed`}
+            detail="Restart to start using it. A running recording is stopped and saved first."
+          />
+          <div className="update-actions">
+            <button className="primary" onClick={() => void restartToUpdate()}>Restart Camly</button>
+          </div>
+        </>
+      )}
+      {state.status === "error" && (
+        <>
+          <UpdateLine icon={<IconWarning />} tone="warn" title="The update didn't work" detail={state.message} />
+          <div className="update-actions">
+            <button className="primary" onClick={() => void (state.version ? installUpdate() : checkForUpdates())}>Try Again</button>
+            <button className="link" onClick={() => void api.open(RELEASES_URL)}>Download from GitHub</button>
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+function releasedOn(date?: string) {
+  // The updater reports e.g. "2026-11-06 09:12:00.0 +00:00:00"; keep only what Date understands.
+  const ms = date ? Date.parse(date.replace(" ", "T").replace(/\.\d+ .*$/, "Z")) : NaN;
+  return Number.isFinite(ms) ? `Released ${formatDate(ms)}` : "A new version is ready to install.";
+}
+
+function UpdateLine(props: { icon: ReactNode; title: string; detail: string; tone?: "ok" | "accent" | "warn" }) {
+  return (
+    <div className="update-line">
+      <span className={`update-icon ${props.tone ?? ""}`}>{props.icon}</span>
+      <div>
+        <strong>{props.title}</strong>
+        <span>{props.detail}</span>
       </div>
     </div>
   );

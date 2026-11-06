@@ -21,3 +21,6 @@ Thumbs.db
 *.swp
 *.swo
 
+
+# Updater signing key — never commit; store it as the TAURI_SIGNING_PRIVATE_KEY secret
+.updater-key/

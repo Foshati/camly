@@ -111,6 +111,8 @@ final class Recorder: NSObject, SCStreamOutput, SCStreamDelegate {
     func run() async {
         do {
             try await start()
+        } catch RecorderError.diskFull {
+            Out.fail(RecorderError.diskFull.message, code: "diskFull")
         } catch {
             Out.fail(Self.describe(error), code: CGPreflightScreenCaptureAccess() ? "error" : "permission")
         }
@@ -130,6 +132,10 @@ final class Recorder: NSObject, SCStreamOutput, SCStreamDelegate {
             _ = CGRequestScreenCaptureAccess()
             throw RecorderError.permission
         }
+        // Starting on a full disk would only produce a file that is closed a second later.
+        let free = Disk.freeBytes(at: baseURL.deletingLastPathComponent())
+        if free >= 0 && free < reserveBytes + 100 * 1_048_576 { throw RecorderError.diskFull }
+
         let wantsMic = opts.microphoneId != nil
         if wantsMic, AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {
             _ = await AVCaptureDevice.requestAccess(for: .audio)
@@ -639,12 +645,15 @@ final class Recorder: NSObject, SCStreamOutput, SCStreamDelegate {
 
 enum RecorderError: Error {
     case permission
+    case diskFull
     case message(String)
 
     var message: String {
         switch self {
         case .permission:
             return "Camly needs Screen Recording permission. Open System Settings → Privacy & Security → Screen & System Audio Recording, enable Camly, then try again."
+        case .diskFull:
+            return "Your disk is full. Free up some space (empty the Trash or delete large files), then record again."
         case .message(let m):
             return m
         }

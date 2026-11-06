@@ -53,6 +53,8 @@ export type Settings = {
   onboarded: boolean;
   /** ✕ hides Camly to the menu bar instead of quitting (keeps the shortcut alive). */
   keepRunning: boolean;
+  /** Look for new versions at launch and every few hours. */
+  autoUpdates: boolean;
 };
 
 export const DEFAULTS: Settings = {
@@ -92,6 +94,7 @@ export const DEFAULTS: Settings = {
   shortcut: null,
   onboarded: false,
   keepRunning: false,
+  autoUpdates: true,
 };
 
 /** Webcam video bitrate per quality preset (MediaRecorder, before optional HEVC pass). */

@@ -12,6 +12,7 @@ use crate::{recorder, windows};
 
 pub struct TrayState {
     new: MenuItem<Wry>,
+    update: MenuItem<Wry>,
     stop: MenuItem<Wry>,
     pause: MenuItem<Wry>,
     /// Items that start a capture; disabled while a recording runs.
@@ -43,6 +44,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         false,
         None::<&str>,
     )?;
+    let update = item("update", "Check for Updates…", None)?;
     let quit = item("quit", "Quit Camly", Some("CmdOrCtrl+Q"))?;
 
     let screenshot = Submenu::with_items(app, "Screenshot", true, &[&shot_screen, &shot_region])?;
@@ -54,7 +56,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             &new, &screenshot, &record, &camera, &sep()?,
             &stop, &pause, &sep()?,
             &library, &folder, &compress, &sep()?,
-            &settings, &about, &quit,
+            &settings, &update, &about, &quit,
         ],
     )?;
 
@@ -68,7 +70,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         .build(app)?;
 
     let starters = vec![shot_screen, shot_region, rec_screen, rec_region, camera];
-    app.manage(TrayState { new, stop, pause, starters, paused: Mutex::new(false) });
+    app.manage(TrayState { new, update, stop, pause, starters, paused: Mutex::new(false) });
     Ok(())
 }
 
@@ -101,6 +103,10 @@ fn on_menu(app: &AppHandle, id: &str) {
         "library" => windows::open_library(app, "recordings"),
         "compress" => windows::open_library(app, "compress"),
         "settings" => windows::open_library(app, "settings"),
+        "update" => {
+            windows::open_library(app, "updates");
+            let _ = app.emit_to("library", "updater://check", ());
+        }
         "quit" => {
             // The helper finalizes its file when our stdin pipe closes, so quitting is safe.
             let _ = recorder::send(app, "stop");
@@ -162,5 +168,17 @@ pub fn set_elapsed(app: &AppHandle, seconds: f64, paused: bool, interrupted: boo
 pub fn set_shortcut_label(app: &AppHandle, accelerator: &str) {
     if let Some(state) = app.try_state::<TrayState>() {
         let _ = state.new.set_accelerator(Some(accelerator));
+    }
+}
+
+/// The Library reports a downloadable update; the menu bar item says so too.
+#[tauri::command]
+pub fn set_update_available(app: AppHandle, version: Option<String>) {
+    if let Some(state) = app.try_state::<TrayState>() {
+        let text = match version {
+            Some(v) => format!("Update to Camly {v}…"),
+            None => "Check for Updates…".to_string(),
+        };
+        let _ = state.update.set_text(text);
     }
 }

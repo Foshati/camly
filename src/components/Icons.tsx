@@ -87,3 +87,6 @@ export const IconShield = (p: P) => (
 export const IconSliders = (p: P) => (
   <svg {...base} {...p}><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></svg>
 );
+export const IconUpdate = (p: P) => (
+  <svg {...base} {...p}><path d="M12 4v10.5M7.5 10l4.5 4.5 4.5-4.5" /><path d="M5 19.5h14" /></svg>
+);

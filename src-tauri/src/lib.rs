@@ -7,13 +7,36 @@ mod windows;
 use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::ShortcutState;
 
+/// Panics are logged instead of silently killing Camly; release builds unwind, so a panic
+/// in a helper thread never takes the whole app down.
+fn install_panic_log() {
+    let default = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let line = format!("{} Camly panic: {info}\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S"));
+        eprint!("{line}");
+        // Best effort: the disk may be full, which is exactly when this matters least.
+        if let Some(dir) = dirs::home_dir().map(|h| h.join("Library/Logs/Camly")) {
+            if std::fs::create_dir_all(&dir).is_ok() {
+                use std::io::Write;
+                if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(dir.join("camly.log")) {
+                    let _ = f.write_all(line.as_bytes());
+                }
+            }
+        }
+        default(info);
+    }));
+}
+
 pub fn run() {
-    tauri::Builder::default()
-        // Must be first: a second launch just brings the running Camly forward.
+    install_panic_log();
+    let app = tauri::Builder::default()
+        // Must be first: launching Camly again brings the running one forward.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            windows::show_toolbar(app);
+            windows::open_library(app, "recordings");
         }))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 // Only one shortcut is ever registered: open the toolbar / stop recording.
@@ -31,13 +54,21 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let handle = app.handle().clone();
-            tray::setup(&handle)?;
-            windows::create_overlay(&handle)?;
+            // Nothing here may stop Camly from opening: each part fails on its own (a full
+            // disk, a busy menu bar, a taken shortcut) and the app still comes up.
+            if let Err(e) = tray::setup(&handle) {
+                eprintln!("Menu bar item unavailable: {e}");
+            }
+            if let Err(e) = windows::create_overlay(&handle) {
+                eprintln!("Region overlay unavailable: {e}");
+            }
             // The toolbar re-applies the user's saved shortcut when it loads.
             if let Err(e) = shortcut::register(&handle, shortcut::DEFAULT) {
                 eprintln!("{e}");
             }
-            windows::show_toolbar(&handle);
+            // Opening Camly shows Camly: the Library window (or first-run setup), with a
+            // Dock icon. Captures start from there, the menu bar or the shortcut.
+            windows::open_library(&handle, "recordings");
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -76,6 +107,7 @@ pub fn run() {
             windows::close_capture_ui,
             windows::open_toolbar,
             windows::show_library,
+            tray::set_update_available,
             windows::fit_toolbar,
             windows::hide_window,
             windows::show_camera,
@@ -83,15 +115,21 @@ pub fn run() {
             shortcut::set_shortcut,
             shortcut::default_shortcut,
         ])
-        .build(tauri::generate_context!())
-        .expect("error while building Camly")
-        .run(|app, event| {
-            // Clicking the Dock icon (shown while Library/Camera is open) with every
-            // window hidden brings the capture toolbar back.
-            #[cfg(target_os = "macos")]
-            if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
-                windows::show_toolbar(app);
-            }
-            let _ = (app, event);
-        });
+        .build(tauri::generate_context!());
+
+    let app = match app {
+        Ok(app) => app,
+        Err(e) => {
+            eprintln!("Camly could not start: {e}");
+            std::process::exit(1);
+        }
+    };
+    app.run(|app, event| {
+        // Clicking the Dock or Finder icon with every window hidden opens the Library.
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
+            windows::open_library(app, "recordings");
+        }
+        let _ = (app, event);
+    });
 }
