@@ -526,7 +526,7 @@ pub fn compress(input: &str, output: &Path, opts: &Value, emit: impl Fn(Value) +
             for line in BufReader::new(stderr).lines().map_while(Result::ok) {
                 if let Some(rest) = line.trim().strip_prefix("Duration: ") {
                     if let Some(d) = parse_clock(rest.split(',').next().unwrap_or("")) {
-                        *duration.lock().unwrap() = d;
+                        *duration.lock().unwrap_or_else(|e| e.into_inner()) = d;
                     }
                 }
                 if let Ok(mut l) = log.lock() {
@@ -544,7 +544,7 @@ pub fn compress(input: &str, output: &Path, opts: &Value, emit: impl Fn(Value) +
         let mut last = -1.0;
         for line in BufReader::new(stdout).lines().map_while(Result::ok) {
             if let Some(us) = line.strip_prefix("out_time_us=") {
-                let total = *duration.lock().unwrap();
+                let total = *duration.lock().unwrap_or_else(|e| e.into_inner());
                 let t = us.trim().parse::<f64>().unwrap_or(0.0) / 1_000_000.0;
                 if total > 0.0 {
                     let p = (t / total).clamp(0.0, 1.0);
@@ -562,7 +562,7 @@ pub fn compress(input: &str, output: &Path, opts: &Value, emit: impl Fn(Value) +
                 "output": output.to_string_lossy(),
                 "inputBytes": std::fs::metadata(&input).map(|m| m.len()).unwrap_or(0),
                 "outputBytes": out_bytes,
-                "seconds": *duration.lock().unwrap(),
+                "seconds": *duration.lock().unwrap_or_else(|e| e.into_inner()),
             }));
         } else {
             let tail: String = log.lock().map(|l| l.lines().rev().take(3).collect::<Vec<_>>().join(" · ")).unwrap_or_default();

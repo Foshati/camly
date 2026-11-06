@@ -41,16 +41,33 @@ Camly fits short software walkthroughs, reproducible bug reports, narrated tutor
 
 ## Download
 
-Download installers from the **[latest GitHub release](https://github.com/Foshati/camly/releases/latest)**. These links point to the verified **v1.1.0** assets; the latest-release page is the source of truth for newer versions and available builds.
+Download installers from the **[latest GitHub release](https://github.com/Foshati/camly/releases/latest)**. These links point to the verified **v1.2.0** assets; the latest-release page is the source of truth for newer versions and available builds.
 
 | System | Architecture | Installer |
 |---|---|---|
-| macOS 15+ | Apple Silicon | [DMG for Apple Silicon](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_aarch64.dmg) |
-| macOS 15+ | Intel | [DMG for Intel](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64.dmg) |
-| Windows 10 / 11 | x64 | [EXE installer](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64-setup.exe) · [MSI installer](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_x64_en-US.msi) |
-| Linux | x86_64 | [DEB](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_amd64.deb) · [AppImage](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly_1.1.0_amd64.AppImage) · [RPM](https://github.com/Foshati/camly/releases/download/v1.1.0/Camly-1.1.0-1.x86_64.rpm) |
+| macOS 15+ | Apple Silicon | [DMG for Apple Silicon](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_aarch64.dmg) |
+| macOS 15+ | Intel | [DMG for Intel](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_x64.dmg) |
+| Windows 10 / 11 | x64 | [EXE installer](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_x64-setup.exe) · [MSI installer](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_x64_en-US.msi) |
+| Linux | x86_64 | [DEB](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_amd64.deb) · [AppImage](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly_1.2.0_amd64.AppImage) · [RPM](https://github.com/Foshati/camly/releases/download/v1.2.0/Camly-1.2.0-1.x86_64.rpm) |
 
 On macOS, open the DMG and drag **Camly.app** into **Applications**. On Windows, choose the EXE for a typical installation. On Linux, use the package for your distribution or make the AppImage executable before running it. Linux recordings require an **X11 session**, **FFmpeg**, and PulseAudio-compatible audio tools; see [platform support](#platform-support).
+
+### First launch on macOS
+
+Unless a release says it is notarized by Apple, macOS blocks the first launch of a downloaded copy with *"Camly can't be opened"* or *"Apple could not verify Camly"*. Allow it once, either way:
+
+- **System Settings → Privacy & Security**, scroll to the Camly message, click **Open Anyway**, then confirm; or
+- in Terminal, after copying Camly into Applications:
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/Camly.app
+  ```
+
+Camly then opens normally. Later versions install from inside the app (**Library → Updates**, Camly 1.3+) and need no extra step.
+
+## Updates
+
+Camly 1.3 and later check GitHub for new releases at launch and every few hours. When one is available, **Library → Updates** (or the menu bar item) downloads it, verifies its signature, installs it and restarts Camly — a recording in progress is stopped and saved first. Automatic checks can be turned off on the same page.
 
 ## Get started
 

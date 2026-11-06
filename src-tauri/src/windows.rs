@@ -284,10 +284,11 @@ pub fn set_bubble(app: AppHandle, visible: bool, size: f64) {
     }
     let was_visible = w.is_visible().unwrap_or(false);
     let _ = w.set_size(LogicalSize::new(size, size));
-    if !was_visible && !*BUBBLE_PLACED.lock().unwrap() {
+    let mut placed = BUBBLE_PLACED.lock().unwrap_or_else(|e| e.into_inner());
+    if !was_visible && !*placed {
         let (x, y, _, height) = primary(&app);
         let _ = w.set_position(LogicalPosition::new(x + 32.0, y + height - size - 120.0));
-        *BUBBLE_PLACED.lock().unwrap() = true;
+        *placed = true;
     }
     let _ = w.show();
     let _ = app.emit_to("bubble", "bubble://state", true);

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Camly",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "identifier": "com.foshati.camly",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -110,6 +110,18 @@
       "icons/icon.png"
     ],
     "longDescription": "Camly is a free, open-source desktop capture app for screenshots, screen recording, and webcam capture. Record a display, window, or selected region, use compact quality presets, compress videos locally, and browse captures in a media library. Native ScreenCaptureKit on macOS; FFmpeg screen recording on Windows and Linux X11. Platform capabilities vary; see the project documentation.",
-    "homepage": "https://github.com/Foshati/camly"
+    "homepage": "https://github.com/Foshati/camly",
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDExMzcxMTFFM0NBMzdCM0MKUldROGU2TThIaEUzRVZaOUdtWXhlOFhtcmpUaXNTRENSTUF1MzgyaU1LVjNuekw2SEtlbWpIUUsK",
+      "endpoints": [
+        "https://github.com/Foshati/camly/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

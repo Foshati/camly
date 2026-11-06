@@ -133,6 +133,10 @@ export default function Toolbar() {
       setError("Screen Recording permission is off for Camly.");
       return;
     }
+    if (diskFull(sources, settings)) {
+      setError(DISK_FULL);
+      return;
+    }
     setPanelState(null);
     try {
       if (settings.action === "screenshot") await beginScreenshot(settings, target);
@@ -156,6 +160,11 @@ export default function Toolbar() {
       const src = await api.listSources(dir);
       setSources(src);
       if (!src.screenPermission) return void api.openToolbar();
+      if (diskFull(src, s)) {
+        await api.openToolbar();
+        setError(DISK_FULL);
+        return;
+      }
       const main = src.displays.find((d) => d.isMain);
       const target: Target = { kind: "display", displayId: s.displayId ?? main?.id ?? null };
       if (action === "screenshot") await beginScreenshot(s, target);
@@ -360,6 +369,16 @@ export default function Toolbar() {
 /** Panels never grow past the top of the screen; beyond that they scroll. */
 function panelMaxHeight() {
   return Math.max(240, window.screen.availHeight - 240);
+}
+
+const DISK_FULL = "Your disk is full. Free up some space (empty the Trash or delete large files) to capture.";
+
+/** Room needed to start: recordings keep `minFreeGB` back, screenshots need only a little. */
+function diskFull(sources: Sources | null, s: Settings) {
+  const free = sources?.freeBytes;
+  if (free == null || free < 0) return false;
+  const needed = s.action === "record" ? s.minFreeGB * 1024 ** 3 + 100 * 1024 ** 2 : 20 * 1024 ** 2;
+  return free < needed;
 }
 
 function qualityLabel(q: Quality) {
