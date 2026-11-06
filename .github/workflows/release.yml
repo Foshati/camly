@@ -11,7 +11,7 @@ on:
       tag:
         description: 'Release tag to build (e.g. v1.1.0); its code is checked out'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.2.0'
       platforms:
         description: 'Platforms to build: all, or a comma list of macos,windows,linux'
         required: false
